@@ -12,7 +12,9 @@ mod ui;
 use ui::NDownloadApp;
 
 fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
 
     Application::new().run(|cx: &mut App| {
         cx.activate(true);

@@ -68,6 +68,7 @@
           # Additional dependencies for ndownload
           sqlite
           yt-dlp
+          ffmpeg
         ];
 
         # Dependencies needed only at runtime
@@ -76,6 +77,7 @@
           mesa
           mesa.drivers
           yt-dlp
+          ffmpeg
         ];
 
         nativeBuildInputs = with pkgs; [
@@ -141,6 +143,7 @@
           shellHook = ''
             echo "[🦀 Rust $(rustc --version)] - Ready to develop ndownload!"
             echo "yt-dlp: $(yt-dlp --version)"
+            echo "ffmpeg: $(ffmpeg -version | head -1)"
             echo "Vulkan ICD: $VK_ICD_FILENAMES"
             echo "Available Vulkan devices:"
             vulkaninfo --summary 2>/dev/null | grep -A 2 "GPU" || echo "  Run 'vulkaninfo' for details"

@@ -2,6 +2,7 @@ use gpui::*;
 use std::sync::Arc;
 use crate::scanner::VideoScanner;
 use crate::downloader_queue::DownloadQueue;
+use serde::{Deserialize, Serialize};
 
 mod text_input;
 use text_input::TextInputView;
@@ -14,9 +15,10 @@ pub struct NDownloadApp {
     scanner: Arc<VideoScanner>,
     download_queue: Arc<DownloadQueue>,
     loading: bool,
+    scroll_handle: ScrollHandle,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Channel {
     name: String,
     platform: Platform,
@@ -32,7 +34,7 @@ struct VideoInfo {
     downloaded: bool,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 enum Platform {
     YouTube,
     Twitch,
@@ -79,6 +81,33 @@ impl Platform {
     }
 }
 
+fn format_date(date_str: &str) -> String {
+    // Format YYYYMMDD -> DD/MM/YYYY
+    if date_str.len() == 8 {
+        let year = &date_str[0..4];
+        let month = &date_str[4..6];
+        let day = &date_str[6..8];
+        format!("{}/{}/{}", day, month, year)
+    } else {
+        date_str.to_string()
+    }
+}
+
+const CHANNELS_CACHE_FILE: &str = "/tmp/ndownload_channels.json";
+
+fn load_channels() -> Vec<Channel> {
+    match std::fs::read_to_string(CHANNELS_CACHE_FILE) {
+        Ok(content) => serde_json::from_str(&content).unwrap_or_default(),
+        Err(_) => Vec::new(),
+    }
+}
+
+fn save_channels(channels: &[Channel]) {
+    if let Ok(content) = serde_json::to_string_pretty(channels) {
+        let _ = std::fs::write(CHANNELS_CACHE_FILE, content);
+    }
+}
+
 impl NDownloadApp {
     pub fn new(_window: &mut Window, cx: &mut Context<Self>) -> Self {
         let url_input = cx.new(|cx| {
@@ -91,23 +120,28 @@ impl NDownloadApp {
 
         Self {
             url_input,
-            channels: Vec::new(),
+            channels: load_channels(),
             selected_channel: None,
             videos: Vec::new(),
             scanner: Arc::new(VideoScanner::new()),
             download_queue: Arc::new(DownloadQueue::new(cx)),
             loading: false,
+            scroll_handle: ScrollHandle::new(),
         }
     }
 
     fn add_channel_from_url(&mut self, url: String) {
         if let Some(platform) = Platform::from_url(&url) {
             if let Some(name) = Platform::extract_channel_name(&url) {
-                self.channels.push(Channel {
-                    name,
-                    platform,
-                    url,
-                });
+                // Éviter les doublons
+                if !self.channels.iter().any(|c| c.url == url) {
+                    self.channels.push(Channel {
+                        name,
+                        platform,
+                        url,
+                    });
+                    save_channels(&self.channels);
+                }
             }
         }
     }
@@ -310,9 +344,12 @@ impl Render for NDownloadApp {
                                 .into_any_element()
                         } else {
                             div()
+                                .id("channels-list")
                                 .flex()
                                 .flex_col()
                                 .gap_2()
+                                .overflow_y_scroll()
+                                .track_scroll(&self.scroll_handle)
                                 .children(self.channels.iter().enumerate().map(|(index, channel)| {
                                     let platform_color = match channel.platform {
                                         Platform::YouTube => rgb(0xff0000),
@@ -478,9 +515,12 @@ impl NDownloadApp {
                                 .into_any_element()
                         } else {
                             div()
+                                .id("videos-list")
                                 .flex()
                                 .flex_col()
                                 .gap_2()
+                                .overflow_y_scroll()
+                                .track_scroll(&self.scroll_handle)
                                 .children(self.videos.iter().map(|video| {
                                     div()
                                         .flex()
@@ -518,29 +558,18 @@ impl NDownloadApp {
                                                 )
                                                 .child(
                                                     div()
-                                                        .flex()
-                                                        .gap_2()
-                                                        .child(
-                                                            div()
-                                                                .text_color(rgb(0xaaaaaa))
-                                                                .text_size(px(12.0))
-                                                                .child(video.upload_date.clone().unwrap_or_else(|| "Date inconnue".to_string()))
-                                                        )
-                                                        .child(
-                                                            div()
-                                                                .text_color(if video.downloaded {
-                                                                    rgb(0x10b981)
-                                                                } else {
-                                                                    rgb(0xf59e0b)
-                                                                })
-                                                                .text_size(px(12.0))
-                                                                .font_weight(FontWeight::SEMIBOLD)
-                                                                .child(if video.downloaded {
-                                                                    "Téléchargé"
-                                                                } else {
-                                                                    "Non téléchargé"
-                                                                })
-                                                        )
+                                                        .text_color(if video.downloaded {
+                                                            rgb(0x10b981)
+                                                        } else {
+                                                            rgb(0xf59e0b)
+                                                        })
+                                                        .text_size(px(12.0))
+                                                        .font_weight(FontWeight::SEMIBOLD)
+                                                        .child(if video.downloaded {
+                                                            "Téléchargé"
+                                                        } else {
+                                                            "Non téléchargé"
+                                                        })
                                                 )
                                         )
                                 }))
