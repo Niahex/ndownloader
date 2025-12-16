@@ -1,5 +1,4 @@
 use anyhow::Result;
-use chrono::Utc;
 use crate::database::Video;
 use super::Platform;
 
@@ -33,12 +32,12 @@ impl Platform for YouTube {
         tracing::info!("Récupération du flux RSS YouTube: {}", rss_url);
 
         let response = self.client.get(&rss_url).send().await?;
-        let content = response.text().await?;
+        let _content = response.text().await?;
 
         // Parse le XML RSS
         // Pour simplifier, on utilise une approche basique
         // Dans une version plus robuste, utilisez une bibliothèque XML
-        let mut videos = Vec::new();
+        let videos = Vec::new();
 
         // Extraction simple des vidéos du flux RSS
         // Format: <yt:videoId>ID</yt:videoId>

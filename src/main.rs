@@ -12,13 +12,13 @@ use ui::NDownloadApp;
 fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    App::new().run(|cx: &mut AppContext| {
+    Application::new().run(|cx: &mut App| {
         cx.activate(true);
         cx.on_action(quit);
 
         let bounds = Bounds::centered(None, size(px(1200.0), px(800.0)), cx);
 
-        cx.open_window(
+        let _window = cx.open_window(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 titlebar: Some(TitlebarOptions {
@@ -38,14 +38,14 @@ fn main() -> Result<()> {
                 }),
                 ..Default::default()
             },
-            |cx| cx.new_view(|cx| NDownloadApp::new(cx)),
+            |_window, cx| cx.new(|cx| NDownloadApp::new(cx)),
         );
     });
 
     Ok(())
 }
 
-fn quit(_: &Quit, cx: &mut AppContext) {
+fn quit(_: &Quit, cx: &mut App) {
     cx.quit();
 }
 

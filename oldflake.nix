@@ -1,5 +1,5 @@
 {
-  description = "ndownload - Automatic video downloader for Twitch and YouTube channels";
+  description = "nwidgets - A GPUI-based application launcher";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -47,7 +47,6 @@
 
         # Dependencies for building the application
         buildInputs = with pkgs; [
-          # GPUI dependencies
           wayland
           vulkan-loader
           vulkan-validation-layers
@@ -65,9 +64,6 @@
           libnotify
           alsa-lib
           udev
-          # Additional dependencies for ndownload
-          sqlite
-          yt-dlp
         ];
 
         # Dependencies needed only at runtime
@@ -75,7 +71,6 @@
           vulkan-loader
           mesa
           mesa.drivers
-          yt-dlp
         ];
 
         nativeBuildInputs = with pkgs; [
@@ -95,10 +90,10 @@
         };
 
         # Application package definition
-        ndownload = craneLib.buildPackage {
+        nwidgets = craneLib.buildPackage {
           inherit src cargoArtifacts buildInputs nativeBuildInputs runtimeDependencies;
           env = envVars;
-          pname = "ndownload";
+          pname = "nwidgets";
           version = "0.1.0";
         };
 
@@ -112,24 +107,24 @@
         ];
       in {
         packages = {
-          default = ndownload;
-          inherit ndownload;
+          default = nwidgets;
+          inherit nwidgets;
         };
 
         checks = {
-          inherit ndownload;
+          inherit nwidgets;
 
-          ndownload-clippy = craneLib.cargoClippy {
+          nwidgets-clippy = craneLib.cargoClippy {
             inherit src cargoArtifacts buildInputs nativeBuildInputs;
             env = envVars;
             cargoClippyExtraArgs = "--all-targets -- --deny warnings";
           };
 
-          ndownload-fmt = craneLib.cargoFmt {inherit src;};
+          nwidgets-fmt = craneLib.cargoFmt {inherit src;};
         };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ndownload];
+          inputsFrom = [nwidgets];
           nativeBuildInputs = devTools;
           env = envVars;
 
@@ -139,8 +134,7 @@
           VK_ICD_FILENAMES = "${pkgs.mesa.drivers}/share/vulkan/icd.d/radeon_icd.x86_64.json";
 
           shellHook = ''
-            echo "[🦀 Rust $(rustc --version)] - Ready to develop ndownload!"
-            echo "yt-dlp: $(yt-dlp --version)"
+            echo "[🦀 Rust $(rustc --version)] - Ready to develop nwidgets!"
             echo "Vulkan ICD: $VK_ICD_FILENAMES"
             echo "Available Vulkan devices:"
             vulkaninfo --summary 2>/dev/null | grep -A 2 "GPU" || echo "  Run 'vulkaninfo' for details"

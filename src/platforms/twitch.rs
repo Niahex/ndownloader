@@ -1,5 +1,4 @@
 use anyhow::Result;
-use chrono::Utc;
 use crate::database::Video;
 use super::Platform;
 
@@ -22,12 +21,12 @@ impl Platform for Twitch {
 
         tracing::info!("Récupération des VODs Twitch pour: {}", channel);
 
-        let channel_url = format!("https://www.twitch.tv/{}/videos", channel);
+        let _channel_url = format!("https://www.twitch.tv/{}/videos", channel);
 
         // TODO: Utiliser yt-dlp pour lister les vidéos disponibles
         // yt-dlp --flat-playlist --dump-json URL
 
-        let mut videos = Vec::new();
+        let videos = Vec::new();
 
         tracing::warn!("Récupération des VODs Twitch non implémentée complètement");
 
