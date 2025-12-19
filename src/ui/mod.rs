@@ -362,7 +362,7 @@ impl NDownloaderApp {
         // Notification de début
         Notification::info(
             "Téléchargement démarré",
-            &format!("Téléchargement de {} en cours...", filename_clone),
+            &format!("Téléchargement de {filename_clone} en cours..."),
         );
 
         cx.spawn(async move |this, cx| {
@@ -378,7 +378,7 @@ impl NDownloaderApp {
                 tracing::error!("Failed to add download: {}", error);
                 Notification::error(
                     "Erreur de téléchargement",
-                    &format!("Impossible de démarrer le téléchargement: {}", error),
+                    &format!("Impossible de démarrer le téléchargement: {error}"),
                 );
 
                 this.update(cx, |this, cx| {
@@ -430,7 +430,7 @@ impl NDownloaderApp {
 
                     Notification::success(
                         "Téléchargement terminé",
-                        &format!("{} a été téléchargé avec succès", filename_clone),
+                        &format!("{filename_clone} a été téléchargé avec succès"),
                     );
 
                     this.update(cx, |this, cx| {
@@ -778,7 +778,7 @@ impl NDownloaderApp {
                             .gap_2()
                             .size_full()
                             .overflow_y_scroll()
-                            .children(self.videos.iter().enumerate().map(|(_idx, video)| {
+                            .children(self.videos.iter().map(|video| {
                                 let video_url = video.url.clone();
                                 let channel_name = self.channels[channel_index].name.clone();
                                 let status = video.status.clone();

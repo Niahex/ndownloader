@@ -55,11 +55,6 @@ impl<T: Clone + Serialize + for<'de> Deserialize<'de>> Cache<T> {
         }
     }
 
-    pub fn clear(&self) {
-        let mut cache = self.data.write();
-        cache.clear();
-    }
-
     fn load_from_disk(path: &PathBuf) -> Result<HashMap<String, CacheEntry<T>>> {
         let content = std::fs::read_to_string(path)?;
         let data: HashMap<String, T> = serde_json::from_str(&content)?;

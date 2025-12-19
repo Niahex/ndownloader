@@ -76,7 +76,7 @@ impl VideoScanner {
 
         if !output.status.success() {
             let error = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!("yt-dlp a échoué: {}", error);
+            anyhow::bail!("yt-dlp a échoué: {error}");
         }
 
         let stdout = String::from_utf8(output.stdout)?;
@@ -121,7 +121,7 @@ impl VideoScanner {
         );
 
         for storage_path in &self.storage_paths {
-            let channel_path = format!("{}/{}", storage_path, channel_name);
+            let channel_path = format!("{storage_path}/{channel_name}");
 
             // Vérifier si le dossier existe
             if let Ok(entries) = std::fs::read_dir(&channel_path) {
@@ -143,17 +143,15 @@ impl VideoScanner {
                     // Si pas en cache, lire avec ffprobe
                     let local_duration = if let Some(dur) = local_duration {
                         dur
+                    } else if let Some(dur) = Self::get_video_duration(&path) {
+                        // Mettre en cache
+                        self.file_durations_cache
+                            .lock()
+                            .insert(path_str.clone(), dur);
+                        dur
                     } else {
-                        if let Some(dur) = Self::get_video_duration(&path) {
-                            // Mettre en cache
-                            self.file_durations_cache
-                                .lock()
-                                .insert(path_str.clone(), dur);
-                            dur
-                        } else {
-                            tracing::warn!("Impossible de lire la durée de: {}", path.display());
-                            continue;
-                        }
+                        tracing::warn!("Impossible de lire la durée de: {}", path.display());
+                        continue;
                     };
 
                     tracing::debug!("Fichier: {} - durée: {}", path.display(), local_duration);

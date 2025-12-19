@@ -1,10 +1,12 @@
 use gpui::*;
 
+type OnEnterCallback = Box<dyn Fn(&str) + 'static>;
+
 pub struct TextInput {
     focus_handle: FocusHandle,
     value: SharedString,
     placeholder: SharedString,
-    on_enter: Option<Box<dyn Fn(&str) + 'static>>,
+    on_enter: Option<OnEnterCallback>,
 }
 
 impl TextInput {
@@ -90,14 +92,14 @@ impl Render for TextInputView {
                 // Gestion de Ctrl+V pour paste
                 if event.keystroke.modifiers.control && event.keystroke.key == "v" {
                     // Essayer de lire le presse-papier
-                    cx.read_from_clipboard().map(|clipboard_item| {
+                    if let Some(clipboard_item) = cx.read_from_clipboard() {
                         if let Some(text) = clipboard_item.text() {
                             let mut new_value = this.input.value.to_string();
                             new_value.push_str(&text);
                             this.input.value = new_value.into();
                             cx.notify();
                         }
-                    });
+                    }
                     return;
                 }
 
