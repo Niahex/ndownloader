@@ -103,12 +103,13 @@
           cargoExtraArgs = "--release";
 
           postInstall = ''
-            mkdir -p $out/share/applications
+            mkdir -p $out/share/applications $out/share/icons/hicolor/scalable/apps
+            cp ${./assets/ndownloader.svg} $out/share/icons/hicolor/scalable/apps/ndownloader.svg
             cat > $out/share/applications/ndownloader.desktop << EOF
             [Desktop Entry]
             Name=ndownloader
             Exec=$out/bin/ndownloader
-            Icon=/home/nia/Github/ndownloader/assets/ndownloader.svg
+            Icon=ndownloader
             Type=Application
             Categories=Network;AudioVideo;
             EOF
