@@ -11,7 +11,7 @@ mod platforms;
 mod scanner;
 mod ui;
 
-use ui::{NDownloadApp, actions::*};
+use ui::{NDownloaderApp, actions::*};
 
 fn main() -> Result<()> {
     tracing_subscriber::fmt()
@@ -53,7 +53,7 @@ fn main() -> Result<()> {
                 }),
                 ..Default::default()
             },
-            |window, cx| cx.new(|cx| NDownloadApp::new(window, cx)),
+            |window, cx| cx.new(|cx| NDownloaderApp::new(window, cx)),
         );
     });
 

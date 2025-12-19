@@ -3312,7 +3312,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ndownload"
+name = "ndownloader"
 version = "0.1.0"
 dependencies = [
  "anyhow",

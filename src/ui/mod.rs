@@ -32,7 +32,7 @@ const NORD13: u32 = 0xebcb8b; // Aurora - yellow
 const NORD14: u32 = 0xa3be8c; // Aurora - green
 const NORD15: u32 = 0xb48ead; // Aurora - purple
 
-pub struct NDownloadApp {
+pub struct NDownloaderApp {
     url_input: Entity<TextInputView>,
     channels: Vec<Channel>,
     selected_channel: Option<usize>,
@@ -136,7 +136,7 @@ fn format_date(date_str: &str) -> String {
     }
 }
 
-const CHANNELS_CACHE_FILE: &str = "/tmp/ndownload_channels.json";
+const CHANNELS_CACHE_FILE: &str = "/tmp/ndownloader_channels.json";
 
 fn load_channels() -> Vec<Channel> {
     match std::fs::read_to_string(CHANNELS_CACHE_FILE) {
@@ -167,7 +167,7 @@ fn save_channels(channels: &[Channel]) {
     }
 }
 
-impl NDownloadApp {
+impl NDownloaderApp {
     pub fn new(_window: &mut Window, cx: &mut Context<Self>) -> Self {
         let url_input = cx.new(|cx| {
             TextInputView::new(cx)
@@ -231,7 +231,7 @@ impl NDownloadApp {
 
         cx.spawn_in(window, async move |this, cx| {
             let videos_result = scanner.scan_channel_videos(&channel_url).await;
-            
+
             this.update(cx, |this, cx| {
                 match videos_result {
                     Ok(metadata_videos) => {
@@ -263,7 +263,7 @@ impl NDownloadApp {
                         tracing::error!("Failed to scan channel videos: {}", error);
                     }
                 }
-                
+
                 this.loading = false;
                 cx.notify();
             })
@@ -274,10 +274,10 @@ impl NDownloadApp {
     fn delete_channel(&mut self, index: usize, cx: &mut Context<Self>) {
         if index < self.channels.len() {
             self.channels.remove(index);
-            
+
             // Sauvegarder les changements
             save_channels(&self.channels);
-            
+
             // Si on était sur cette chaîne, revenir à la liste
             if self.selected_channel == Some(index) {
                 self.selected_channel = None;
@@ -288,7 +288,7 @@ impl NDownloadApp {
                     self.selected_channel = Some(selected - 1);
                 }
             }
-            
+
             cx.notify();
         }
     }
@@ -372,10 +372,10 @@ impl NDownloadApp {
         // Lancer le téléchargement
         let output_path_buf = std::path::PathBuf::from(&output_path);
         let filename_clone = filename.trim().to_string();
-        
+
         // Notification de début
         Notification::info("Téléchargement démarré", &format!("Téléchargement de {} en cours...", filename_clone));
-        
+
         cx.spawn(async move |this, cx| {
             if let Err(error) = download_queue
                 .add_download(
@@ -388,7 +388,7 @@ impl NDownloadApp {
             {
                 tracing::error!("Failed to add download: {}", error);
                 Notification::error("Erreur de téléchargement", &format!("Impossible de démarrer le téléchargement: {}", error));
-                
+
                 this.update(cx, |this, cx| {
                     this.downloading_videos.remove(&video_url);
                     for video in &mut this.videos {
@@ -430,9 +430,9 @@ impl NDownloadApp {
                             }
                         }
                     }).ok();
-                    
+
                     Notification::success("Téléchargement terminé", &format!("{} a été téléchargé avec succès", filename_clone));
-                    
+
                     this.update(cx, |this, cx| {
                         this.downloading_videos.remove(&video_url);
                         for video in &mut this.videos {
@@ -459,7 +459,7 @@ impl NDownloadApp {
     }
 }
 
-impl Render for NDownloadApp {
+impl Render for NDownloaderApp {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let main_content = if let Some(channel_index) = self.selected_channel {
             self.render_video_list(channel_index, cx).into_any_element()
@@ -476,7 +476,7 @@ impl Render for NDownloadApp {
     }
 }
 
-impl NDownloadApp {
+impl NDownloaderApp {
     fn render_channel_list(&mut self, cx: &mut Context<Self>) -> AnyElement {
 
         // Sinon, afficher la liste des chaînes
@@ -661,7 +661,7 @@ impl NDownloadApp {
     }
 }
 
-impl NDownloadApp {
+impl NDownloaderApp {
     fn render_video_list(&mut self, channel_index: usize, cx: &mut Context<Self>) -> Div {
         let channel = &self.channels[channel_index];
         let platform_color = match channel.platform {
