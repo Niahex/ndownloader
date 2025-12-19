@@ -103,6 +103,18 @@
           env = envVars;
           pname = "ndownloader";
           version = "0.1.0";
+
+          postInstall = ''
+            mkdir -p $out/share/applications
+            cat > $out/share/applications/ndownloader.desktop << EOF
+            [Desktop Entry]
+            Name=ndownloader
+            Exec=$out/bin/ndownloader
+            Icon=/home/nia/Github/ndownloader/assets/ndownloader.svg
+            Type=Application
+            Categories=Network;AudioVideo;
+            EOF
+          '';
         };
 
         # Development shell tools
